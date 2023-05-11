@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
@@ -25,6 +25,7 @@ namespace CUE4Parse.UE4.Objects.Engine
     public class UUserDefinedStruct : UStruct
     {
         public EUserDefinedStructureStatus Status;
+        public uint StructFlags { get; set; }
         public List<FPropertyTag>? DefaultProperties { get; set; }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
@@ -35,15 +36,16 @@ namespace CUE4Parse.UE4.Objects.Engine
             if (Flags.HasFlag(EObjectFlags.RF_ClassDefaultObject)) return;
             if (Status != EUserDefinedStructureStatus.UDSS_UpToDate) return;
 
-            Ar.Position = validPos;
-            // if (Ar.HasUnversionedProperties)
-            // {
-            //     DeserializePropertiesUnversioned(DefaultProperties = new List<FPropertyTag>(), Ar, this); // Why does this fail?
-            // }
-            // else
-            // {
-            //     DeserializePropertiesTagged(DefaultProperties = new List<FPropertyTag>(), Ar);
-            // }
+            StructFlags = Ar.Read<uint>();
+            //Ar.Position = validPos;
+            if (Ar.HasUnversionedProperties)
+            {
+                DeserializePropertiesUnversioned(DefaultProperties = new List<FPropertyTag>(), Ar, this); // Why does this fail?
+            }
+            else
+            {
+                DeserializePropertiesTagged(DefaultProperties = new List<FPropertyTag>(), Ar);
+            }
         }
 
         protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
